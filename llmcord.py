@@ -203,6 +203,8 @@ async def on_message(new_msg):
     # Generate and send response message(s) (can be multiple if response is long)
     response_msgs = []
     response_contents = []
+    thought_contents = []
+    thought_finished = False
     prev_chunk = None
     edit_task = None
 
@@ -217,16 +219,39 @@ async def on_message(new_msg):
                 if prev_chunk != None and prev_chunk.choices[0].finish_reason != None:
                     break
 
-                prev_content = prev_chunk.choices[0].delta.content if prev_chunk != None and prev_chunk.choices[0].delta.content else ""
+
+                # prev_content = prev_chunk.choices[0].delta.content if prev_chunk != None and prev_chunk.choices[0].delta.content and  else ""
+                if prev_chunk != None and prev_chunk.choices[0].delta.content and prev_chunk.choices[0].delta.content != "</think>":
+                    prev_content = prev_chunk.choices[0].delta.content
+                else:
+                    prev_content = ""
                 curr_content = curr_chunk.choices[0].delta.content or ""
 
                 prev_chunk = curr_chunk
 
                 finish_reason = curr_chunk.choices[0].finish_reason
 
-                new_content = prev_content if finish_reason == None else (prev_content + curr_content)
 
-                if response_contents == [] and new_content == "":
+                if finish_reason != None:
+                    new_content = prev_content + curr_content
+                else:
+                    if not thought_finished:
+                        if "</think>" in curr_content:
+                            # logging.info("finished thinking")
+                            thought_finished = True
+                            thought, content = curr_content.split("</think>")
+                            thought_contents.append(thought)
+                            new_content = content
+                            # logging.info(f"thought contents: {thought_contents}")
+                        else:
+                            # logging.info("still thinking")
+                            thought_contents.append(curr_content)
+                            new_content = ""
+                    else:
+                        # logging.info("thought finished, adding to response")
+                        new_content = prev_content
+
+                if response_contents == [] and new_content == "" or not thought_finished:
                     continue
 
                 if start_next_msg := response_contents == [] or len(response_contents[-1] + new_content) > max_message_length:
@@ -244,7 +269,12 @@ async def on_message(new_msg):
                         if edit_task != None:
                             await edit_task
 
-                        embed.description = response_contents[-1] if is_final_edit else (response_contents[-1] + STREAMING_INDICATOR)
+                        if is_final_edit:
+                            spoilered_thought = "||" + " ".join(thought_contents) + "||"
+                            embed.description = spoilered_thought + response_contents[-1]
+                        else:
+                            spoilered_thought = "||" + " ".join(thought_contents) + "||"
+                            embed.description = spoilered_thought + STREAMING_INDICATOR + response_contents[-1]
                         embed.color = EMBED_COLOR_COMPLETE if msg_split_incoming or is_good_finish else EMBED_COLOR_INCOMPLETE
 
                         if start_next_msg:
