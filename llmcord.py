@@ -240,6 +240,7 @@ async def on_message(new_msg):
                             # logging.info("finished thinking")
                             thought_finished = True
                             thought, content = curr_content.split("</think>")
+                            thought = thought + "</think>"
                             thought_contents.append(thought)
                             new_content = content
                             # logging.info(f"thought contents: {thought_contents}")
