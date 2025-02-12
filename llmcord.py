@@ -271,11 +271,9 @@ async def on_message(new_msg):
                             await edit_task
 
                         if is_final_edit:
-                            spoilered_thought = "||" + " ".join(thought_contents) + "||"
-                            embed.description = spoilered_thought + response_contents[-1]
+                            embed.description = response_contents[-1]
                         else:
-                            spoilered_thought = "||" + " ".join(thought_contents) + "||"
-                            embed.description = spoilered_thought + STREAMING_INDICATOR + response_contents[-1]
+                            embed.description = STREAMING_INDICATOR + response_contents[-1]
                         embed.color = EMBED_COLOR_COMPLETE if msg_split_incoming or is_good_finish else EMBED_COLOR_INCOMPLETE
 
                         if start_next_msg:
