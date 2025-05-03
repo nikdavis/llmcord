@@ -1,7 +1,22 @@
+version: "3.8"
+
 services:
-  container:
+  # container:
+  #   build: .
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./:/app:ro
+  #   environment:
+  #     CONFIG_FILE: "config.yaml"
+  #   command: ["python", "llmcord.py"]
+
+  container-jerry:
     build: .
     network_mode: host
     restart: unless-stopped
     volumes:
       - ./:/app:ro
+    environment:
+      CONFIG_FILE: "config.jerry.yaml"
+    command: ["python", "llmcord.py"]

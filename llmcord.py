@@ -9,6 +9,7 @@ import discord
 import httpx
 from openai import AsyncOpenAI
 import yaml
+import os
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,6 +29,7 @@ MAX_MESSAGE_NODES = 500
 
 
 def get_config(filename="config.yaml"):
+    filename = os.environ.get("CONFIG_FILE", filename)
     with open(filename, "r") as file:
         return yaml.safe_load(file)
 
@@ -39,7 +41,7 @@ if client_id := cfg["client_id"]:
 
 intents = discord.Intents.default()
 intents.message_content = True
-activity = discord.CustomActivity(name=(cfg["status_message"] or "github.com/jakobdylanc/llmcord")[:128])
+activity = discord.CustomActivity(name=(cfg["status_message"] or "")[:128])
 discord_client = discord.Client(intents=intents, activity=activity)
 
 httpx_client = httpx.AsyncClient()
